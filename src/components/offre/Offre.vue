@@ -17,8 +17,6 @@ const form = reactive({
 async function loadOffres() {
   try {
     const response = await getAllOffres();
-    console.log("Données reçues:", response.data);
-
     if (Array.isArray(response.data)) {
       offres.value = response.data;
     } else if (response.data && Array.isArray(response.data.offres)) {
@@ -56,21 +54,9 @@ function remplirForm(offre) {
 async function submitForm() {
   try {
     if (isEditing.value && currentId.value !== null) {
-      await updateOffre(currentId.value, {
-        descriptionOffre: form.descriptionOffre,
-        prixOffre: form.prixOffre,
-        disponibiliteOffre: form.disponibiliteOffre,
-        idAgence: form.idAgence,
-      });
-      console.log("Offre modifiée");
+      await updateOffre(currentId.value, { ...form });
     } else {
-      await createOffre({
-        descriptionOffre: form.descriptionOffre,
-        prixOffre: form.prixOffre,
-        disponibiliteOffre: form.disponibiliteOffre,
-        idAgence: form.idAgence,
-      });
-      console.log("Offre créée");
+      await createOffre({ ...form });
     }
     resetForm();
     await loadOffres();
@@ -84,7 +70,6 @@ async function supprimerOffre(id) {
   if (!confirm("Confirmer la suppression ?")) return;
   try {
     await deleteOffre(id);
-    console.log("Offre supprimée");
     await loadOffres();
   } catch (error) {
     console.error("Erreur suppression :", error);
@@ -98,60 +83,173 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <h2>Liste des offres</h2>
+  <div class="container">
+    <h2>Gestion des Offres</h2>
 
-    <div v-if="errorMsg" style="color: red; margin-bottom: 1em;">{{ errorMsg }}</div>
+    <div v-if="errorMsg" class="error">{{ errorMsg }}</div>
 
-    <!-- Debug affichage JSON -->
-    <pre>{{ JSON.stringify(offres, null, 2) }}</pre>
-
-    <table border="1" cellspacing="0" cellpadding="5" v-if="offres.length > 0">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>Prix</th>
-          <th>Disponibilité</th>
-          <th>ID Agence</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="offre in offres" :key="offre.idOffre">
-          <td>{{ offre.descriptionOffre }}</td>
-          <td>{{ offre.prixOffre }}</td>
-          <td>{{ offre.disponibiliteOffre }}</td>
-          <td>{{ offre.idAgence }}</td>
-          <td>
-            <button @click="remplirForm(offre)">Modifier</button>
-            <button @click="supprimerOffre(offre.idOffre)" style="color: red;">Supprimer</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p v-else>Aucune offre disponible</p>
-
-    <h3 style="margin-top: 2em;">{{ isEditing ? "Modifier une offre" : "Ajouter une offre" }}</h3>
-    <form @submit.prevent="submitForm" style="margin-top: 1em;">
-      <div>
-        <label>Description :</label><br />
+    <h3>{{ isEditing ? "Modifier une offre" : "Ajouter une nouvelle offre" }}</h3>
+    <form @submit.prevent="submitForm" class="offer-form">
+      <label>
+        Description :
         <input v-model="form.descriptionOffre" type="text" required />
-      </div>
-      <div>
-        <label>Prix :</label><br />
+      </label>
+      <label>
+        Prix (€) :
         <input v-model.number="form.prixOffre" type="number" min="0" required />
-      </div>
-      <div>
-        <label>Disponibilité :</label><br />
+      </label>
+      <label>
+        Disponibilité :
         <input v-model="form.disponibiliteOffre" type="text" required />
-      </div>
-      <div>
-        <label>ID Agence :</label><br />
+      </label>
+      <label>
+        ID Agence :
         <input v-model.number="form.idAgence" type="number" min="0" required />
+      </label>
+      <div class="form-buttons">
+        <button type="submit" class="save-btn">{{ isEditing ? "Mettre à jour" : "Ajouter" }}</button>
+        <button type="button" class="cancel-btn" @click="resetForm">Annuler</button>
       </div>
-      <button type="submit" style="margin-top: 1em;">{{ isEditing ? "Mettre à jour" : "Ajouter" }}</button>
-      <button type="button" @click="resetForm" style="margin-left: 1em;">Annuler</button>
     </form>
+
+    <h3 style="margin-top: 30px;">Liste des Offres</h3>
+
+    <div v-if="offres.length > 0" class="card-grid">
+      <div class="offer-card" v-for="offre in offres" :key="offre.idOffre">
+        <h4>{{ offre.descriptionOffre }}</h4>
+        <p><strong>Prix:</strong> {{ offre.prixOffre }} €</p>
+        <p><strong>Disponibilité:</strong> {{ offre.disponibiliteOffre }}</p>
+        <p><strong>ID Agence:</strong> {{ offre.idAgence }}</p>
+        <div class="card-buttons">
+          <button class="edit-btn" @click="remplirForm(offre)">Modifier</button>
+          <button class="delete-btn" @click="supprimerOffre(offre.idOffre)">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <p v-else class="no-data">Aucune offre disponible.</p>
   </div>
 </template>
+
+<style scoped>
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 15px;
+  background: #fdfdfd;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ddd;
+}
+
+h2, h3 {
+  text-align: center;
+  color: #333;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.offer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 auto;
+}
+
+.offer-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  color: #555;
+}
+
+.offer-form input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.save-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #ffc107;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+h3 {
+  margin-top: 30px;
+  color: #007BFF;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.offer-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 6px #ccc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.offer-card h4 {
+  margin: 0 0 5px;
+  color: #333;
+}
+
+.card-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.edit-btn {
+  background-color: #007BFF;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.no-data {
+  text-align: center;
+  color: #888;
+  margin-top: 20px;
+}
+</style>

@@ -1,7 +1,12 @@
 <script setup>
-import Offre from './components/offre/Offre.vue'
+import Navbar from './components/navbar/Navbar.vue';
+
+
+
+
 </script>
 
 <template>
-  <Offre />
+  <Navbar></Navbar>
+  <RouterView></RouterView>
 </template>
