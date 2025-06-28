@@ -2,7 +2,7 @@
   <nav class="custom-navbar">
     <div class="navbar-container">
       <!-- Logo -->
-      <router-link to="/" class="navbar-brand">MyTravelApp</router-link>
+      <router-link to="/" class="navbar-brand">Projet Vues Js </router-link>
 
       <!-- Menu (inline for desktop) -->
       <ul class="navbar-links">
@@ -13,9 +13,9 @@
         <li class="dropdown">
           <span class="nav-link dropdown-toggle">Plus ▼</span>
           <ul class="dropdown-menu">
-            <li><a href="#">Action 1</a></li>
-            <li><a href="#">Action 2</a></li>
-            <li><a href="#">Autre</a></li>
+            <li><a href="#">Flottes</a></li>
+            <li><a href="#">Reservations</a></li>
+            <li><a href="#">Autre...</a></li>
           </ul>
         </li>
       </ul>
